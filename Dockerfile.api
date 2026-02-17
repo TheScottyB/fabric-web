@@ -1,0 +1,44 @@
+# Fabric REST API Dockerfile
+FROM golang:1.25-alpine AS builder
+
+# Install build dependencies
+RUN apk add --no-cache git ca-certificates tzdata
+
+# Set working directory
+WORKDIR /build
+
+# Install Fabric
+RUN go install github.com/danielmiessler/fabric/cmd/fabric@latest
+
+# Production stage
+FROM alpine:latest
+
+# Install runtime dependencies
+RUN apk add --no-cache ca-certificates tzdata curl
+
+# Create fabric user
+RUN addgroup -g 1000 fabric && \
+    adduser -D -u 1000 -G fabric fabric
+
+# Copy binary from builder
+COPY --from=builder /root/go/bin/fabric /usr/local/bin/fabric
+
+# Create necessary directories
+RUN mkdir -p /home/fabric/.config/fabric/patterns \
+             /home/fabric/.config/fabric/logs \
+             /home/fabric/.config/fabric/outputs && \
+    chown -R fabric:fabric /home/fabric/.config
+
+# Switch to fabric user
+USER fabric
+WORKDIR /home/fabric
+
+# Expose API port
+EXPOSE 8080
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+  CMD curl -f http://localhost:8080/health || exit 1
+
+# Run Fabric API server
+CMD ["fabric", "--serve", "--address", ":8080"]

@@ -1,0 +1,46 @@
+{
+	"/": [
+		"src/routes/+page.ts",
+		"src/routes/+layout.ts",
+		"src/routes/+layout.ts"
+	],
+	"/about": [
+		"src/routes/about/+page.ts",
+		"src/routes/+layout.ts"
+	],
+	"/api/youtube/transcript": [
+		"src/routes/api/youtube/transcript/+server.ts"
+	],
+	"/chat": [
+		"src/routes/chat/+page.ts",
+		"src/routes/+layout.ts",
+		"src/routes/+layout.ts",
+		"src/routes/chat/+server.ts"
+	],
+	"/contact": [
+		"src/routes/contact/+page.ts",
+		"src/routes/+layout.ts"
+	],
+	"/notes": [
+		"src/routes/notes/+server.ts"
+	],
+	"/obsidian": [
+		"src/routes/obsidian/+server.ts"
+	],
+	"/posts": [
+		"src/routes/posts/+page.ts",
+		"src/routes/+layout.ts"
+	],
+	"/posts/[slug]": [
+		"src/routes/posts/[slug]/+page.ts",
+		"src/routes/+layout.ts"
+	],
+	"/tags": [
+		"src/routes/tags/+page.ts",
+		"src/routes/+layout.ts"
+	],
+	"/tags/[tag]": [
+		"src/routes/tags/[tag]/+page.ts",
+		"src/routes/+layout.ts"
+	]
+}

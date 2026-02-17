@@ -1,0 +1,121 @@
+version: '3.8'
+
+services:
+  # Fabric REST API Backend (Standard Mode)
+  fabric-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    image: fabric-api:latest
+    container_name: fabric-api
+    ports:
+      - "8080:8080"
+    volumes:
+      - fabric-config:/home/fabric/.config/fabric
+      - fabric-patterns:/home/fabric/.config/fabric/patterns
+      - fabric-logs:/home/fabric/.config/fabric/logs
+    env_file:
+      - .env
+    restart: unless-stopped
+    networks:
+      - fabric-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Fabric API with Ollama Compatibility (Optional)
+  fabric-api-ollama:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    image: fabric-api:latest
+    container_name: fabric-api-ollama
+    ports:
+      - "11434:11434"  # Standard Ollama port
+    volumes:
+      - fabric-config:/home/fabric/.config/fabric
+      - fabric-patterns:/home/fabric/.config/fabric/patterns
+      - fabric-logs:/home/fabric/.config/fabric/logs
+    env_file:
+      - .env
+    environment:
+      - SERVE_OLLAMA=true
+    command: ["fabric", "--serve", "--serveOllama", "--address", ":11434"]
+    restart: unless-stopped
+    networks:
+      - fabric-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/version"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    profiles:
+      - ollama  # Only starts when explicitly requested
+
+  # Svelte Web App (Modern UI)
+  fabric-web-svelte:
+    build:
+      context: .
+      dockerfile: Dockerfile.svelte
+    image: fabric-web-svelte:latest
+    container_name: fabric-web-svelte
+    ports:
+      - "5173:5173"
+    environment:
+      - FABRIC_API_URL=http://fabric-api:8080
+    depends_on:
+      fabric-api:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - fabric-net
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:5173"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # Streamlit Python UI (Data Visualization)
+  fabric-web-streamlit:
+    build:
+      context: ../fabric-streamlit
+      dockerfile: Dockerfile
+    image: fabric-web-streamlit:latest
+    container_name: fabric-web-streamlit
+    ports:
+      - "8501:8501"
+    volumes:
+      - fabric-config:/home/fabric/.config/fabric:ro
+      - fabric-patterns:/home/fabric/.config/fabric/patterns:ro
+      - fabric-logs:/home/fabric/.config/fabric/logs
+    environment:
+      - FABRIC_API_URL=http://fabric-api:8080
+    depends_on:
+      fabric-api:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - fabric-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8501/_stcore/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  fabric-config:
+    driver: local
+  fabric-patterns:
+    driver: local
+  fabric-logs:
+    driver: local
+
+networks:
+  fabric-net:
+    driver: bridge
