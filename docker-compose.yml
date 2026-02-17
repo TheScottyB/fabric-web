@@ -20,11 +20,11 @@ services:
     networks:
       - fabric-net
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      test: ["CMD", "sh", "-c", "wget --no-verbose --tries=1 --spider http://localhost:8080/models/names || exit 1"]
       interval: 30s
       timeout: 10s
-      retries: 3
-      start_period: 40s
+      retries: 5
+      start_period: 60s
 
   # Fabric API with Ollama Compatibility (Optional)
   fabric-api-ollama:
@@ -80,33 +80,33 @@ services:
       retries: 3
       start_period: 30s
 
-  # Streamlit Python UI (Data Visualization)
-  fabric-web-streamlit:
-    build:
-      context: ../fabric-streamlit
-      dockerfile: Dockerfile
-    image: fabric-web-streamlit:latest
-    container_name: fabric-web-streamlit
-    ports:
-      - "8501:8501"
-    volumes:
-      - fabric-config:/home/fabric/.config/fabric:ro
-      - fabric-patterns:/home/fabric/.config/fabric/patterns:ro
-      - fabric-logs:/home/fabric/.config/fabric/logs
-    environment:
-      - FABRIC_API_URL=http://fabric-api:8080
-    depends_on:
-      fabric-api:
-        condition: service_healthy
-    restart: unless-stopped
-    networks:
-      - fabric-net
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8501/_stcore/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
+  # Streamlit Python UI (Data Visualization) - DISABLED (path issue)
+  # fabric-web-streamlit:
+  #   build:
+  #     context: ../fabric-streamlit
+  #     dockerfile: Dockerfile
+  #   image: fabric-web-streamlit:latest
+  #   container_name: fabric-web-streamlit
+  #   ports:
+  #     - "8501:8501"
+  #   volumes:
+  #     - fabric-config:/home/fabric/.config/fabric:ro
+  #     - fabric-patterns:/home/fabric/.config/fabric/patterns:ro
+  #     - fabric-logs:/home/fabric/.config/fabric/logs
+  #   environment:
+  #     - FABRIC_API_URL=http://fabric-api:8080
+  #   depends_on:
+  #     fabric-api:
+  #       condition: service_healthy
+  #   restart: unless-stopped
+  #   networks:
+  #     - fabric-net
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:8501/_stcore/health"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
+  #     start_period: 40s
 
 volumes:
   fabric-config:

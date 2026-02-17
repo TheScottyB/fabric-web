@@ -14,14 +14,14 @@ RUN go install github.com/danielmiessler/fabric/cmd/fabric@latest
 FROM alpine:latest
 
 # Install runtime dependencies
-RUN apk add --no-cache ca-certificates tzdata curl
+RUN apk add --no-cache ca-certificates tzdata curl wget
 
 # Create fabric user
 RUN addgroup -g 1000 fabric && \
     adduser -D -u 1000 -G fabric fabric
 
 # Copy binary from builder
-COPY --from=builder /root/go/bin/fabric /usr/local/bin/fabric
+COPY --from=builder /go/bin/fabric /usr/local/bin/fabric
 
 # Create necessary directories
 RUN mkdir -p /home/fabric/.config/fabric/patterns \
