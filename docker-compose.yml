@@ -84,7 +84,7 @@ services:
   # Streamlit Python UI (Chat/pattern UX using Fabric CLI)
   fabric-web-streamlit:
     build:
-      context: ../fabric-streamlit
+      context: ./fabric-streamlit
       dockerfile: Dockerfile
     image: fabric-web-streamlit:latest
     container_name: fabric-web-streamlit

@@ -47,7 +47,7 @@ export default defineConfig({
         timeout: 900000,
         rewrite: (path) => path.replace(/^\/api/, ''),
         configure: (proxy, _options) => {
-          proxy.on('error', (err, req, res) => {
+          proxy.on('error', (err, req, res: any) => {
             console.log('proxy error', err);
             res.writeHead(500, {
               'Content-Type': 'text/plain',
@@ -61,7 +61,7 @@ export default defineConfig({
         changeOrigin: true,
         timeout: 900000,
         configure: (proxy, _options) => {
-          proxy.on('error', (err, req, res) => {
+          proxy.on('error', (err, req, res: any) => {
             console.log('proxy error', err);
             res.writeHead(500, {
               'Content-Type': 'application/json',

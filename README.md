@@ -75,6 +75,39 @@ Visit [http://localhost:5173](http://localhost:5173) (default port).
 >
 > Sync Svelte types if needed: `npx svelte-kit sync`
 
+## Infisical Secrets (Recommended)
+
+Use Infisical to keep provider keys out of local files and source control.
+
+### One-time setup
+
+```bash
+infisical login
+npm run secrets:init
+```
+
+### Day-to-day usage
+
+Run dev with injected secrets:
+
+```bash
+npm run dev:infisical
+```
+
+Pull secrets into local `.env` when needed:
+
+```bash
+npm run env:pull:dev
+```
+
+For production env values:
+
+```bash
+npm run env:pull:prod
+```
+
+
+
 ## Streamlit UI
 
 For Python enthusiasts, this alternative UI excels at data visualization and chaining complex patterns. It supports clipboard ops across platforms (install pyperclip on Windows, xclip on Linux).

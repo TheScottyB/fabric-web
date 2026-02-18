@@ -199,8 +199,11 @@ $: filteredPatterns = $patterns
             >
               <div class="flex justify-between items-start mb-2">
                 <h3 class="pattern-name font-bold text-base text-primary-200 leading-tight break-all overflow-hidden pr-2 w-[85%]">{pattern.Name}</h3>
-                <button
+                <span
+                  role="button"
+                  tabindex="0"
                   on:click|stopPropagation={() => toggleFavorite(pattern.Name)}
+                  on:keydown={(e) => (e.key === "Enter" || e.key === " ") && toggleFavorite(pattern.Name)}
                   class="focus:outline-none ml-1 mt-0.5"
                   aria-label={$favorites.includes(pattern.Name) ? 'Remove from favorites' : 'Add to favorites'}
                 >
@@ -209,7 +212,7 @@ $: filteredPatterns = $patterns
                   {:else}
                     <span class="text-primary-400 text-xl hover:text-yellow-300">☆</span>
                   {/if}
-                </button>
+                </span>
               </div>
               
               <!-- Pattern description with scrolling if needed -->

@@ -19,7 +19,7 @@ const initializeHighlighter = async () => {
   try {
     return await getSingletonHighlighter({
       themes: ['dracula'],
-      langs: ['javascript', 'typescript', 'svelte', 'markdown', 'bash', 'go', 'text', 'python', 'rust', 'c', 'c++', 'shell', 'ruby', 'json', 'html', 'css', 'java', 'sql', 'toml', 'yaml']
+      langs: ['javascript', 'typescript', 'svelte', 'markdown', 'bash', 'go', 'text', 'python', 'rust', 'c', 'c++', 'shell', 'powershell', 'ruby', 'json', 'html', 'css', 'java', 'sql', 'toml', 'yaml']
     });
   } catch (error) {
     console.error('Failed to initialize Shiki highlighter:', error);
@@ -44,13 +44,16 @@ const mdsvexOptions = {
         const highlighter = await shikiHighlighterPromise;
         if (!highlighter) {
           console.warn('Shiki highlighter not available, falling back to plain text');
-          return `<pre><code>${code}</code></pre>`;
+          return `<pre><code>${escapeSvelte(code)}</code></pre>`;
         }
-        const html = escapeSvelte(highlighter.codeToHtml(code, { lang, theme: dracula }));
+        const requestedLang = typeof lang === "string" ? lang.toLowerCase() : "text";
+        const loadedLangs = new Set((highlighter.getLoadedLanguages?.() || []).map((value) => String(value).toLowerCase()));
+        const safeLang = loadedLangs.has(requestedLang) ? requestedLang : "text";
+        const html = escapeSvelte(highlighter.codeToHtml(code, { lang: safeLang, theme: dracula }));
         return `{@html \`${html}\`}`;
       } catch (error) {
         console.error('Failed to highlight code:', error);
-        return `<pre><code>${code}</code></pre>`;
+        return `<pre><code>${escapeSvelte(code)}</code></pre>`;
       }
     }
   },

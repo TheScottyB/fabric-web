@@ -9,3 +9,5 @@ logs/
 *.log
 .svelte-kit/
 .claude/
+
+fabric-streamlit/
