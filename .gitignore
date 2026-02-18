@@ -1,7 +1,11 @@
 .env
+.env.*
+!.env.example
 node_modules/
 build/
 dist/
 .DS_Store
 logs/
 *.log
+.svelte-kit/
+.claude/
