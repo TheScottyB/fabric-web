@@ -1,10 +1,11 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { YoutubeTranscript } from 'youtube-transcript';
+import { env } from '$env/dynamic/private';
 
 const FABRIC_BASE_URL = (
-  process.env.FABRIC_API_URL ||
-  process.env.FABRIC_BASE_URL ||
+  env.FABRIC_API_URL ||
+  env.FABRIC_BASE_URL ||
   'http://localhost:8080'
 ).replace(/\/+$/, '');
 

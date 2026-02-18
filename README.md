@@ -152,6 +152,67 @@ Turn `web/src/lib/content/` into an [Obsidian](https://obsidian.md) vault for no
 >
 > When creating new posts, make sure to include a date (YYYY-MM-DD), description, tags (e.g., #ai #patterns), and aliases for SEO. Only a date is needed to display a note. Embed images `(![alt](path))`, link patterns `([[pattern-name]])`, or code blocks for reusable snippets—all in standard Markdown.
 
+
+## Production Runtime Model
+
+The Svelte service now runs as a compiled SvelteKit Node server in Docker (`node build`), not a Vite dev server. This makes local and CI behavior production-aligned.
+
+### Local Parity Commands
+
+```bash
+# quality gates
+npm ci --force
+npm run env:validate
+npm run check
+npm run build
+npm run test
+
+# docker validation
+docker compose config -q
+docker build -f Dockerfile.api -t fabric-api:local .
+docker build -f Dockerfile.svelte -t fabric-web-svelte:local .
+```
+
+## CI Merge Gates
+
+The repository enforces strict CI checks via `.github/workflows/ci.yml`:
+
+1. `quality-gates`: install, env validation, `check`, `build`, `test`
+2. `docker-smoke`: `docker compose config -q`, API image build, Svelte image build
+
+Use these workflow job names in branch protection settings.
+
+## Environment Matrix
+
+| Environment | Secrets Source | Required Baseline | Notes |
+|---|---|---|---|
+| Local (standard) | `.env` | `DEFAULT_VENDOR`, `DEFAULT_MODEL`, provider key or `OLLAMA_API_BASE` | Use `npm run env:validate` |
+| Local (Infisical) | Infisical CLI | same as above | `npm run dev:infisical` |
+| Local (Doppler) | Doppler CLI | same as above | `npm run dev:doppler` |
+| CI | GitHub Actions env | `DEFAULT_VENDOR`, `DEFAULT_MODEL` | CI-safe validation skips provider secret requirement |
+| Docker Compose | `.env` / env_file | Fabric API + Svelte runtime vars | `docker compose config -q` must pass |
+
+## Release Verification Checklist
+
+```bash
+npm ci --force
+npm run env:validate
+npm run check
+npm run build
+npm run test
+docker compose config -q
+docker compose build fabric-api fabric-web-svelte
+docker compose up -d
+```
+
+Then verify endpoints:
+
+```bash
+curl -fsS http://localhost:8080/models/names >/dev/null
+curl -fsS http://localhost:5173 >/dev/null
+curl -fsS http://localhost:8501/_stcore/health >/dev/null
+```
+
 ## Contributing
 
 Refer to the [Contributing Guide](/docs/CONTRIBUTING.md) for details on how to improve this content.

@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # Fabric REST API Backend (Standard Mode)
   fabric-api:
@@ -14,6 +12,7 @@ services:
       - fabric-config:/home/fabric/.config/fabric
       - fabric-patterns:/home/fabric/.config/fabric/patterns
       - fabric-logs:/home/fabric/.config/fabric/logs
+      - ./.env:/home/fabric/.config/fabric/.env:ro
     env_file:
       - .env
     restart: unless-stopped

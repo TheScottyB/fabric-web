@@ -1,0 +1,68 @@
+name: production-hardening-ci
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: production-hardening-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality-gates:
+    name: quality-gates
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --force
+
+      - name: Environment validation (CI-safe)
+        env:
+          CI: 'true'
+          DEFAULT_VENDOR: Gemini
+          DEFAULT_MODEL: gemini-2.5-flash
+        run: npm run env:validate
+
+      - name: Type and Svelte checks
+        run: npm run check
+
+      - name: Build validation
+        run: npm run build
+
+      - name: Test suite
+        run: npm run test
+
+  docker-smoke:
+    name: docker-smoke
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Ensure compose env file exists
+        run: |
+          if [ ! -f .env ]; then
+            cp .env.example .env
+          fi
+
+      - name: Docker compose config validation
+        run: docker compose config -q
+
+      - name: Build Fabric API image
+        run: docker build -f Dockerfile.api -t fabric-api:ci .
+
+      - name: Build Svelte image
+        run: docker build -f Dockerfile.svelte -t fabric-web-svelte:ci .
