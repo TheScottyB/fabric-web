@@ -11,7 +11,7 @@
   let terminalContent = '';
   let typing = false;
   
-  const pages = {
+  const pages: Record<string, string> = {
     home: 'Welcome to Fabric\n\nType `help` to see available commands.',
     about: 'About Fabric',
     chat: 'Enter `chat` to start a chat session.',
@@ -70,7 +70,7 @@
         break;
       default:
           const page = cmd.slice(3);
-          if (pages[page]) {
+          if (Object.prototype.hasOwnProperty.call(pages, page)) {
             typeContent(pages[page]);
           } else {
             typeContent(`Error: Page '${page}' not found`);

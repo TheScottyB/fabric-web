@@ -1,22 +1,27 @@
-<script>
+<script lang="ts">
   import { onMount } from 'svelte';
 
-  let toc = [];
+  type TocItem = {
+    id: string;
+    text: string;
+    level: number;
+  };
+
+  let toc: TocItem[] = [];
 
   onMount(() => {
-    // Get all headings from the content
     const article = document.querySelector('article');
     if (article) {
       const headings = article.querySelectorAll('h1, h2, h3, h4, h5, h6');
-      toc = Array.from(headings).map(heading => ({
+      toc = Array.from(headings).map((heading) => ({
         id: heading.id,
-        text: heading.textContent,
-        level: parseInt(heading.tagName.charAt(1))
+        text: heading.textContent ?? '',
+        level: parseInt(heading.tagName.charAt(1), 10)
       }));
     }
   });
 
-  function scrollToSection(id) {
+  function scrollToSection(id: string) {
     const element = document.getElementById(id);
     if (element) {
       element.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -28,7 +33,7 @@
   <div class="p-4 bg-card text-card-foreground">
     <h4 class="font-semibold mb-4">On this page</h4>
     <ul class="space-y-2">
-      {#each toc.filter(item => item.text !== 'On this page') as item}
+      {#each toc.filter((item) => item.text !== 'On this page') as item}
         <li style="margin-left: {(item.level - 1) * 1}rem">
           <a
             href="#{item.id}"

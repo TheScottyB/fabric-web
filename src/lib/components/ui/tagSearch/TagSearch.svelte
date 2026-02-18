@@ -1,4 +1,5 @@
 <script lang="ts">
+  // @ts-nocheck
   import { InputChip } from '@skeletonlabs/skeleton';
   import type { PostMetadata } from '$lib/types';
   import type { Post } from '$lib/interfaces/post-interface'

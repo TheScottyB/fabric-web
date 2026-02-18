@@ -4,10 +4,11 @@ import type { Frontmatter } from '$lib/utils/markdown';
 export type PostMetadata = Frontmatter;
 
 export interface Post {
+    // Optional for list views where only metadata is loaded
     /** URL-friendly identifier for the post */
     slug: string;
     /** Post metadata from frontmatter */
     metadata: PostMetadata;
     /** Compiled Svelte component or HTML string */
-    content: string | typeof SvelteComponent;
+    content?: string | typeof SvelteComponent;
 }

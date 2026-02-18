@@ -1,9 +1,8 @@
 import type { PageLoad } from './$types';
-import type { Frontmatter } from '$lib/utils/markdown';
 
 export const load: PageLoad = async () => {
 	const postFiles = import.meta.glob('/src/lib/content/posts/*.{md,svx}', { eager: true });
-	
+
 	const posts = Object.entries(postFiles).map(([path, post]: [string, any]) => {
 		const slug = path.split('/').pop()?.replace(/\.(md|svx)$/, '');
 		return {
@@ -17,6 +16,7 @@ export const load: PageLoad = async () => {
 		};
 	});
 
+	type PostSummary = (typeof posts)[number];
 	const tags = posts.reduce((acc, post) => {
 		post.meta.tags.forEach((tag: string) => {
 			if (!acc[tag]) {
@@ -25,7 +25,7 @@ export const load: PageLoad = async () => {
 			acc[tag].push(post);
 		});
 		return acc;
-	}, {} as Record<string, Frontmatter[]>);
+	}, {} as Record<string, PostSummary[]>);
 
 	return {
 		tags,

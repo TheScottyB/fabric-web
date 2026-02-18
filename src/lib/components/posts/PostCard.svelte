@@ -34,10 +34,10 @@
           {formatDistance(parseDate(post.metadata.date), new Date(), { addSuffix: false })}
         {/if}
       </time>
-      {#if post.metadata?.tags?.length > 0}
+      {#if (post.metadata?.tags?.length ?? 0) > 0}
         <span class="text-xs">•</span>
         <div class="flex flex-wrap gap-2">
-          {#each post.metadata?.tags as tag}
+          {#each (post.metadata?.tags ?? []) as tag}
             <a
               href="/tags/{tag}"
               class="inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-semibold transition-colors hover:bg-secondary"

@@ -1,9 +1,10 @@
-<script>
-  import { cn } from "$lib/utils/utils";
-  let className = undefined;
-  export let value = undefined;
+<script lang="ts">
+  import { cn } from '$lib/utils/utils';
+
+  let className = '';
+  export let value: string = '';
   export { className as class };
-  export let readonly = undefined;
+  export let readonly = false;
 </script>
 
 <textarea

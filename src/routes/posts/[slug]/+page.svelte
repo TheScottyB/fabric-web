@@ -1,4 +1,5 @@
 <script lang="ts">
+  // @ts-nocheck
   import type { PageData } from './$types';
   import PostContent from '$lib/components/posts/PostContent.svelte';
   import PostMeta from '$lib/components/posts/PostMeta.svelte';

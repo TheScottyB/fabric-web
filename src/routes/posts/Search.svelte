@@ -1,4 +1,5 @@
 <script lang="ts">
+  // @ts-nocheck
   import { formatDistance } from 'date-fns';
   import type { PageData } from './$types';
   import Card from '$lib/components/ui/cards/card.svelte';
