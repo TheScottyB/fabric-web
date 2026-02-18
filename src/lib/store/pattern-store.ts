@@ -45,9 +45,14 @@ export const patternAPI = {
   async loadPatterns() {
     try {
       // First load pattern descriptions
-      const descriptionsResponse = await fetch('/data/pattern_descriptions.json');
-      const descriptionsData = await descriptionsResponse.json();
-      const descriptions = descriptionsData.patterns as PatternDescription[];
+      let descriptions: PatternDescription[] = [];
+      try {
+        const descriptionsResponse = await fetch('/data/pattern_descriptions.json');
+        const descriptionsData = await descriptionsResponse.json();
+        descriptions = Array.isArray(descriptionsData?.patterns) ? descriptionsData.patterns : [];
+      } catch (descError) {
+        console.warn('Could not load pattern descriptions, using defaults:', descError);
+      }
       console.log("Loaded pattern descriptions:", descriptions.length);
 
       // Then load pattern names and contents

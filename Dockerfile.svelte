@@ -8,7 +8,7 @@ COPY package*.json ./
 RUN npm install --force
 
 COPY . .
-RUN mkdir -p static/data && echo '{}' > static/data/pattern_descriptions.json
+RUN mkdir -p static/data && echo '{"patterns":[]}' > static/data/pattern_descriptions.json
 RUN npm run build
 
 FROM node:20-alpine AS runtime
