@@ -27,7 +27,7 @@ class FabricSmokeTests:
     def __init__(self):
         self.api_base = 'http://localhost:8080'
         self.svelte_base = 'http://localhost:5173'
-        self.streamlit_base = 'http://localhost:8501'
+        self.streamlit_base = 'http://localhost:8502'
         self.test_results = []
         
     def print_header(self, text: str):

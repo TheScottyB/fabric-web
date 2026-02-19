@@ -12,3 +12,14 @@ logs/
 .infisical.json
 
 fabric-streamlit/
+.playwright-mcp/
+
+# Playwright
+playwright-report/
+test-results/
+e2e/.cache/
+
+# Test artifacts
+*.log
+__pycache__/
+.pytest_cache/
