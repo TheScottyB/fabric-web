@@ -7,36 +7,35 @@
   import { elasticOut, quintOut } from 'svelte/easing';
   import { InputChip } from '@skeletonlabs/skeleton';
 
-  let cards = false;
-  let searchQuery = '';
-  let selectedTags: string[] = [];
-  let allTags: string[] = [];
+  let cards = $state(false);
+  let searchQuery = $state('');
+  let selectedTags: string[] = $state([]);
 
-  export let data: PageData;
-  $: posts = data.posts;
+  let { data }: { data: PageData } = $props();
+  let posts = $derived(data.posts);
 
   // Extract all unique tags from Posts
-  $: {
+  let allTags = $derived.by(() => {
     const tagSet = new Set<string>();
     posts.forEach(post => {
       post.meta.tags.forEach(tag => tagSet.add(tag));
     });
-    allTags = Array.from(tagSet);
-  }
+    return Array.from(tagSet);
+  });
 
   // Filter posts based on selected tags-container
-  $: filteredPosts = posts.filter(post => {
+  let filteredPosts = $derived(posts.filter(post => {
     if (selectedTags.length === 0) return true;
     return selectedTags.every(tag =>
       post.meta.tags.some(postTag => postTag.toLowerCase() === tag.toLowerCase())
     );
-  });
+  }));
 
   function validateTag(value: string): boolean {
     return allTags.some(tag => tag.toLowerCase() === value.toLowerCase());
   }
 
-  let visible: boolean = true;
+  let visible: boolean = $state(true);
 </script>
 
 <!-- This file can be deleted, It think it has better search functionality but it needs work to ...work
@@ -58,7 +57,7 @@ Could this be the new component for the search bar?
 
 	export let data: PageData;
 	$: posts = data.posts;
-	
+
 	// Extract all unique tags from posts
 	$: {
 		const tagSet = new Set<string>();
@@ -71,7 +70,7 @@ Could this be the new component for the search bar?
 	// Filter posts based on selected tags
 	$: filteredPosts = posts.filter(post => {
 		if (selectedTags.length === 0) return true;
-		return selectedTags.every(tag => 
+		return selectedTags.every(tag =>
 			post.meta.tags.some(postTag => postTag.toLowerCase() === tag.toLowerCase())
 		);
 	});
@@ -172,10 +171,10 @@ Could this be the new component for the search bar?
           {#each allTags.filter(tag => tag.toLowerCase().includes(searchQuery.toLowerCase())) as tag}
             <button
               class="tag-button px-3 py-1 rounded-full text-sm font-medium transition-colors
-              {selectedTags.includes(tag.toLowerCase()) 
-                ? 'bg-primary text-primary-foreground' 
+              {selectedTags.includes(tag.toLowerCase())
+                ? 'bg-primary text-primary-foreground'
                 : 'bg-secondary hover:bg-secondary/80'}"
-              on:click={() => {
+              onclick={() => {
                 const tagLower = tag.toLowerCase();
                 if (!selectedTags.includes(tagLower)) {
                   selectedTags = [...selectedTags, tagLower];

@@ -38,7 +38,7 @@
           <a
             href="#{item.id}"
             class="text-xs hover:text-primary transition-colors"
-            on:click|preventDefault={() => scrollToSection(item.id)}
+            onclick={(e: MouseEvent) => { e.preventDefault(); scrollToSection(item.id); }}
           >
             {item.text}
           </a>

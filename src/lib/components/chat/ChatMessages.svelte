@@ -1,7 +1,6 @@
 <script lang="ts">
   import { chatState, errorStore, streamingStore } from '$lib/store/chat-store';
-  import { afterUpdate, onMount } from 'svelte';
-  import { toastStore } from '$lib/store/toast-store';
+  import { onMount } from 'svelte';
   import { marked } from 'marked';
   import SessionManager from './SessionManager.svelte';
   import { fade, slide } from 'svelte/transition';
@@ -12,12 +11,9 @@
   import { get } from 'svelte/store';
   import { selectedPatternName } from '$lib/store/pattern-store';
 
-
-  let showPatternModal = false;
-
-  let messagesContainer: HTMLDivElement | null = null;
-  let showScrollButton = false;
-  let isUserMessage = false;
+  let showPatternModal = $state(false);
+  let messagesContainer: HTMLDivElement | null = $state(null);
+  let showScrollButton = $state(false);
 
   function scrollToBottom() {
     if (messagesContainer) {
@@ -31,18 +27,19 @@
     showScrollButton = scrollHeight - scrollTop - clientHeight > 100;
   }
 
-  // Watch for changes in messages
-  $: if ($chatState.messages.length > 0) {
-    const lastMessage = $chatState.messages[$chatState.messages.length - 1];
-    isUserMessage = lastMessage.role === 'user';
-    // Auto-scroll on both user messages and assistant messages
-    setTimeout(scrollToBottom, 100);
-  }
+  // Auto-scroll when messages change
+  $effect(() => {
+    if ($chatState.messages.length > 0) {
+      setTimeout(scrollToBottom, 100);
+    }
+  });
 
-  // Also watch for streaming state changes to ensure scrolling when streaming completes
-  $: if ($streamingStore === false) {
-    setTimeout(scrollToBottom, 100);
-  }
+  // Auto-scroll when streaming completes
+  $effect(() => {
+    if ($streamingStore === false) {
+      setTimeout(scrollToBottom, 100);
+    }
+  });
 
   onMount(() => {
     if (messagesContainer) {
@@ -55,7 +52,6 @@
     }
   });
 
-  // Configure marked to be synchronous
   const renderer = new marked.Renderer();
   marked.setOptions({
     gfm: true,
@@ -64,33 +60,39 @@
     async: false
   });
 
-  // New shouldRenderAsMarkdown function
-function shouldRenderAsMarkdown(message: Message): boolean {
+  function shouldRenderAsMarkdown(message: Message): boolean {
     const pattern = get(selectedPatternName);
     if (pattern && message.role === 'assistant') {
-        return message.format !== 'mermaid';
+      return message.format !== 'mermaid';
     }
     return message.role === 'assistant' && message.format !== 'plain';
-}
+  }
 
-// Keep the original renderContent function
-function renderContent(message: Message): string {
+  function renderContent(message: Message): string {
     const content = message.content.replace(/\\n/g, '\n');
-    
+
     if (shouldRenderAsMarkdown(message)) {
-        try {
-            return marked.parse(content, { async: false }) as string;
-        } catch (error) {
-            console.error('Error rendering markdown:', error);
-            return content;
-        }
+      try {
+        return marked.parse(content, { async: false }) as string;
+      } catch {
+        return content;
+      }
     }
     return content;
-}
+  }
 
-
-
-  
+  function friendlyError(raw: string): string {
+    if (raw.includes('fetch') || raw.includes('network') || raw.includes('ECONNREFUSED')) {
+      return 'Unable to reach the server. Check that the Fabric API is running.';
+    }
+    if (raw.includes('500') || raw.includes('Internal Server Error')) {
+      return 'The server encountered an error. Please try again.';
+    }
+    if (raw.includes('timeout') || raw.includes('ETIMEDOUT')) {
+      return 'The request timed out. The server may be busy — try again shortly.';
+    }
+    return raw;
+  }
 </script>
 
 <div class="bg-primary-800/30 rounded-lg flex flex-col h-full shadow-lg">
@@ -103,32 +105,30 @@ function renderContent(message: Message): string {
 
   <Modal
     show={showPatternModal}
-    on:close={() => showPatternModal = false}
+    onclose={() => showPatternModal = false}
   >
-    <PatternList on:close={() => showPatternModal = false} />
+    <PatternList onclose={() => showPatternModal = false} />
   </Modal>
 
   {#if $errorStore}
     <div class="error-message" transition:slide>
-      <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4" role="alert">
-        <p>{$errorStore}</p>
+      <div class="bg-red-900/30 border-l-4 border-red-400 text-red-300 p-3 mx-3 mt-3 rounded text-sm" role="alert">
+        <p>{friendlyError($errorStore)}</p>
       </div>
     </div>
   {/if}
 
-  <div 
-    class="messages-container p-3 flex-1 overflow-y-auto max-h-dvh relative" 
+  <div
+    class="messages-container p-3 flex-1 overflow-y-auto max-h-dvh relative"
     bind:this={messagesContainer}
   >
     <div class="messages-content flex flex-col gap-3">
       {#each $chatState.messages as message}
-        <div 
+        <div
           class="message-item {message.role === 'system' ? 'w-full bg-blue-900/20' : message.role === 'assistant' ? 'bg-primary/5 rounded-lg p-3' : 'ml-auto'}"
           transition:fade
-          class:loading-message={message.format === 'loading'}       
+          class:loading-message={message.format === 'loading'}
         >
-
-        
           <div class="message-header flex items-center gap-2 mb-1 {message.role === 'assistant' || message.role === 'system' ? '' : 'justify-end'}">
             <span class="text-xs text-muted-foreground rounded-lg p-1 variant-glass-secondary font-bold uppercase">
               {#if message.role === 'system'}
@@ -167,7 +167,7 @@ function renderContent(message: Message): string {
     {#if showScrollButton}
       <button
         class="absolute bottom-4 right-4 bg-primary/20 hover:bg-primary/30 rounded-full p-2 transition-opacity"
-        on:click={scrollToBottom}
+        onclick={scrollToBottom}
         transition:fade
       >
         <ArrowDown class="w-4 h-4" />
@@ -177,76 +177,73 @@ function renderContent(message: Message): string {
 </div>
 
 <style>
+  :global(.loading-message) {
+    animation: flash 1.5s ease-in-out infinite;
+  }
 
+  @keyframes flash {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+  }
 
-    :global(.loading-message) {
-        animation: flash 1.5s ease-in-out infinite;
-    }
+  .messages-container {
+    flex: 1;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    -ms-overflow-style: thin;
+  }
 
-    @keyframes flash {
-        0% { opacity: 1; }
-        50% { opacity: 0.5; }
-        100% { opacity: 1; }
-    }
+  .messages-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
 
+  .message-header {
+    display: flex;
+    gap: 0.5rem;
+  }
 
-.messages-container {
-  flex: 1;
-  overflow-y: auto;
-  scrollbar-width: thin;
-  -ms-overflow-style: thin;
-}
+  .message-item {
+    position: relative;
+  }
 
-.messages-content {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
+  .loading-indicator {
+    display: inline-flex;
+    gap: 2px;
+  }
 
-.message-header {
-  display: flex;
-  gap: 0.5rem;
-}
+  .dot {
+    animation: blink 1.4s infinite;
+    opacity: 0;
+  }
 
-.message-item {
-  position: relative;
-}
+  .dot:nth-child(2) {
+    animation-delay: 0.2s;
+  }
 
-.loading-indicator {
-  display: inline-flex;
-  gap: 2px;
-}
+  .dot:nth-child(3) {
+    animation-delay: 0.4s;
+  }
 
-.dot {
-  animation: blink 1.4s infinite;
-  opacity: 0;
-}
+  @keyframes blink {
+    0%, 100% { opacity: 0; }
+    50% { opacity: 1; }
+  }
 
-.dot:nth-child(2) {
-  animation-delay: 0.2s;
-}
+  :global(.prose pre) {
+    background-color: rgb(40, 44, 52);
+    color: rgb(171, 178, 191);
+    padding: 1rem;
+    border-radius: 0.375rem;
+    margin: 1rem 0;
+  }
 
-.dot:nth-child(3) {
-  animation-delay: 0.4s;
-}
-
-@keyframes blink {
-  0%, 100% { opacity: 0; }
-  50% { opacity: 1; }
-}
-
-:global(.prose pre) {
-  background-color: rgb(40, 44, 52);
-  color: rgb(171, 178, 191);
-  padding: 1rem;
-  border-radius: 0.375rem;
-  margin: 1rem 0;
-}
-
-:global(.prose code) {
-  color: rgb(171, 178, 191);
-  background-color: rgba(40, 44, 52, 0.1);
-  padding: 0.2em 0.4em;
-  border-radius: 0.25rem;
-}
+  :global(.prose code) {
+    color: rgb(171, 178, 191);
+    background-color: rgba(40, 44, 52, 0.1);
+    padding: 0.2em 0.4em;
+    border-radius: 0.25rem;
+  }
 </style>

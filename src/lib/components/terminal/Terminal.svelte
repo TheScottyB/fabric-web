@@ -3,14 +3,14 @@
   // import { fade } from 'svelte/transition';
   import { goto } from '$app/navigation';
 
-  let mounted = false;
-  let currentCommand = '';
-  let commandHistory: string[] = [];
-  let showCursor = true;
+  let mounted = $state(false);
+  let currentCommand = $state('');
+  let commandHistory: string[] = $state([]);
+  let showCursor = $state(true);
 
-  let terminalContent = '';
-  let typing = false;
-  
+  let terminalContent = $state('');
+  let typing = $state(false);
+
   const pages: Record<string, string> = {
     home: 'Welcome to Fabric\n\nType `help` to see available commands.',
     about: 'About Fabric',
@@ -42,7 +42,7 @@
 
   function handleCommand(cmd: string) {
     commandHistory = [...commandHistory, cmd];
-    
+
     switch (cmd) {
       case 'clear':
         terminalContent = '';
@@ -56,7 +56,7 @@
       case 'chat':
         goto('/chat');
         break;
-      case 'posts': 
+      case 'posts':
         goto('/posts');
         break;
       case 'tags':
@@ -124,7 +124,7 @@
             <input
               type="text"
               bind:value={currentCommand}
-              on:keydown={handleKeydown}
+              onkeydown={handleKeydown}
               class="flex-1 bg-transparent border-none outline-none terminal-text"
               placeholder="Type a command..."
             />
@@ -155,7 +155,7 @@
 
   .animate-blink {
     animation: blink 1s step-end infinite;
-    flex-col: 1; 
+    flex-col: 1;
 
   }
 

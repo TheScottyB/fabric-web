@@ -1,6 +1,5 @@
 <script lang="ts">
-  export let url: string = 'https://buymeacoffee.com/kayvansylvan';
-  export let text: string = 'Buy me a coffee';
+  let { url = 'https://buymeacoffee.com/kayvansylvan', text = 'Buy me a coffee' }: { url?: string; text?: string } = $props();
 </script>
 
 <a

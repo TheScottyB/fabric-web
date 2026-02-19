@@ -4,25 +4,29 @@
   import { patterns, patternAPI, systemPrompt, selectedPatternName } from "$lib/store/pattern-store";
   import { get } from 'svelte/store';
 
-  let selectedPreset = $selectedPatternName || "";
+  let selectedPreset = $state($selectedPatternName || "");
 
-  // Subscribe to selectedPatternName changes
-  selectedPatternName.subscribe(value => {
+  // Subscribe to selectedPatternName changes (replaces manual .subscribe())
+  $effect(() => {
+    const value = $selectedPatternName;
     if (value && value !== selectedPreset) {
       console.log('Pattern selected from modal:', value);
       selectedPreset = value;
     }
   });
 
-  // Watch selectedPreset changes
+  // Watch selectedPreset changes (replaces $: reactive block)
   // Always call selectPattern when the dropdown value changes.
   // The patternAPI.selectPattern function handles empty strings correctly.
-  $: {
+  $effect(() => {
+    // Track selectedPreset so this effect re-runs when it changes
+    const preset = selectedPreset;
+
     // Log the change regardless of the value
-    console.log('Dropdown selection changed to:', selectedPreset);
+    console.log('Dropdown selection changed to:', preset);
     try {
       // Call the function to select the pattern (or reset if selectedPreset is empty)
-      patternAPI.selectPattern(selectedPreset);
+      patternAPI.selectPattern(preset);
 
       // Optional: Keep verification logs if helpful for debugging
       const currentSystemPrompt = get(systemPrompt);
@@ -32,7 +36,7 @@
 
       // Optional: Refine verification logic if needed
       // For example, only log error if a pattern was expected but not set
-      // if (selectedPreset && (!currentPattern || !currentSystemPrompt)) {
+      // if (preset && (!currentPattern || !currentSystemPrompt)) {
       //   console.error('Pattern selection verification failed:');
       //   console.error('- Selected Pattern:', currentPattern);
       //   console.error('- System Prompt:', currentSystemPrompt);
@@ -41,7 +45,7 @@
       // Log any errors during the pattern selection process
       console.error('Error processing pattern selection:', error);
     }
-  }
+  });
 
     onMount(async () => {
       await patternAPI.loadPatterns();

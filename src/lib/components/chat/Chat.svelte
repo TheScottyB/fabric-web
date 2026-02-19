@@ -14,7 +14,6 @@
   import { featureFlags } from "$lib/config/features";
   import { getDrawerStore } from '@skeletonlabs/skeleton';
   import { systemPrompt, selectedPatternName } from "$lib/store/pattern-store";
-  import { onMount } from "svelte";
 
   const drawerStore = getDrawerStore();
   function openDrawer() {
@@ -22,30 +21,30 @@
   }
 
   // Column width state (percentage values)
-  let leftColumnWidth = 50;
-  let rightColumnWidth = 50;
-  let isDragging = false;
-  
+  let leftColumnWidth = $state(50);
+  let rightColumnWidth = $state(50);
+  let isDragging = $state(false);
+
   // Message input height state (percentage values)
   const DEFAULT_INPUT_HEIGHT = 30; // Default percentage of the left column
   const MAX_INPUT_HEIGHT = DEFAULT_INPUT_HEIGHT * 2; // Maximum 200% of default height
   const MIN_SYSTEM_INSTRUCTIONS_HEIGHT = 20; // Minimum percentage for system instructions
-  let messageInputHeight = DEFAULT_INPUT_HEIGHT;
-  let systemInstructionsHeight = 100 - DEFAULT_INPUT_HEIGHT;
-  let isVerticalDragging = false;
-  let initialMouseY = 0; // Track initial mouse position
-  let initialInputHeight = 0; // Track initial input height
-  
+  let messageInputHeight = $state(DEFAULT_INPUT_HEIGHT);
+  let systemInstructionsHeight = $state(100 - DEFAULT_INPUT_HEIGHT);
+  let isVerticalDragging = $state(false);
+  let initialMouseY = $state(0); // Track initial mouse position
+  let initialInputHeight = $state(0); // Track initial input height
+
   // Handle horizontal resize functionality
   function startResize(e: MouseEvent | KeyboardEvent) {
     isDragging = true;
     e.preventDefault();
-    
+
     // Add event listeners for drag and release
     window.addEventListener('mousemove', handleResize);
     window.addEventListener('mouseup', stopResize);
   }
-  
+
   // Handle keyboard events for accessibility
   function handleKeyDown(e: KeyboardEvent) {
     // Only respond to Enter or Space key
@@ -53,90 +52,90 @@
       startResize(e);
     }
   }
-  
+
   function handleResize(e: MouseEvent) {
     if (!isDragging) return;
-    
+
     // Get container dimensions
     const container = document.querySelector('.chat-container');
     if (!container) return;
-    
+
     const containerRect = container.getBoundingClientRect();
     const containerWidth = containerRect.width;
-    
+
     // Calculate percentage based on mouse position
     const percentage = ((e.clientX - containerRect.left) / containerWidth) * 100;
-    
+
     // Apply constraints (left: 40-80%, right: 20-60%)
     leftColumnWidth = Math.min(Math.max(percentage, 40), 80);
     rightColumnWidth = 100 - leftColumnWidth;
   }
-  
+
   // Handle vertical resize functionality
   function startVerticalResize(e: MouseEvent | KeyboardEvent) {
     isVerticalDragging = true;
     e.preventDefault();
-    
+
     // Store initial mouse position and input height
     if (e instanceof MouseEvent) {
       initialMouseY = e.clientY;
       initialInputHeight = messageInputHeight;
     }
-    
+
     // Add event listeners for drag and release
     window.addEventListener('mousemove', handleVerticalResize);
     window.addEventListener('mouseup', stopVerticalResize);
   }
-  
+
   function handleVerticalKeyDown(e: KeyboardEvent) {
     // Only respond to Enter or Space key
     if (e.key === 'Enter' || e.key === ' ') {
       startVerticalResize(e);
     }
   }
-  
+
   function handleVerticalResize(e: MouseEvent) {
     if (!isVerticalDragging) return;
-    
+
     // Get container dimensions
     const leftColumn = document.querySelector('.left-column');
     if (!leftColumn) return;
-    
+
     // Get system instructions element to check its actual height
     const sysInstructions = leftColumn.querySelector('.system-instructions');
     if (!sysInstructions) return;
-    
+
     const columnRect = leftColumn.getBoundingClientRect();
     const columnHeight = columnRect.height;
-    
+
     // Calculate height change based on mouse movement
     const mouseDelta = e.clientY - initialMouseY;
     const deltaPercentage = (mouseDelta / columnHeight) * 100;
     const newHeight = initialInputHeight + deltaPercentage;
-    
+
     // Apply constraints to ensure system instructions remain visible
     const minHeight = DEFAULT_INPUT_HEIGHT * 0.25; // 25% of default
     const maxHeight = Math.min(MAX_INPUT_HEIGHT, 100 - MIN_SYSTEM_INSTRUCTIONS_HEIGHT); // Max 200% of default or ensure system instructions are visible
-    
+
     // Calculate new heights
     const constrainedHeight = Math.min(Math.max(newHeight, minHeight), maxHeight);
     const newSysInstructionsHeight = 100 - constrainedHeight;
-    
+
     // Additional safety check - don't allow resize if it would make system instructions too small
     const sysInstructionsPixelHeight = (columnHeight * newSysInstructionsHeight) / 100;
     if (sysInstructionsPixelHeight < 100) return; // Don't resize if it would be less than 100px
-    
+
     // Apply the new heights
     messageInputHeight = constrainedHeight;
     systemInstructionsHeight = newSysInstructionsHeight;
   }
-  
+
   function stopVerticalResize() {
     isVerticalDragging = false;
     window.removeEventListener('mousemove', handleVerticalResize);
     window.removeEventListener('mouseup', stopVerticalResize);
   }
-  
+
   function stopResize() {
     isDragging = false;
     window.removeEventListener('mousemove', handleResize);
@@ -144,7 +143,7 @@
   }
 
   // Clean up event listeners when component is destroyed
-  onMount(() => {
+  $effect(() => {
     return () => {
       window.removeEventListener('mousemove', handleResize);
       window.removeEventListener('mouseup', stopResize);
@@ -153,7 +152,7 @@
     };
   });
 
-  $: showObsidian = $featureFlags.enableObsidianIntegration;
+  let showObsidian = $derived($featureFlags.enableObsidianIntegration);
 </script>
 
 <div class="chat-container flex gap-0 p-2 w-full h-screen">
@@ -172,10 +171,10 @@
     </div>
 
     <!-- Vertical Resize Handle -->
-    <button 
-      class="vertical-resize-handle" 
-      on:mousedown={startVerticalResize}
-      on:keydown={handleVerticalKeyDown}
+    <button
+      class="vertical-resize-handle"
+      onmousedown={startVerticalResize}
+      onkeydown={handleVerticalKeyDown}
       type="button"
       aria-label="Resize message input and system instructions"
     ></button>
@@ -194,10 +193,10 @@
   </aside>
 
   <!-- Resize Handle -->
-  <button 
-    class="resize-handle" 
-    on:mousedown={startResize}
-    on:keydown={handleKeyDown}
+  <button
+    class="resize-handle"
+    onmousedown={startResize}
+    onkeydown={handleKeyDown}
     type="button"
     aria-label="Resize chat panels"
   ></button>
@@ -228,7 +227,7 @@
           </div>
         {/if}
       </div>
-      <Button variant="ghost" size="sm" class="h-6 px-2 text-xs opacity-70 hover:opacity-100" on:click={openDrawer}>
+      <Button variant="ghost" size="sm" class="h-6 px-2 text-xs opacity-70 hover:opacity-100" onclick={openDrawer}>
         <Tooltip text="Take Notes" position="left">
           <span>Take Notes</span>
         </Tooltip>

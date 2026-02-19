@@ -1,19 +1,23 @@
 
 <script lang="ts">
-  import { createEventDispatcher, onMount } from 'svelte';
+  import { onMount } from 'svelte';
   import TagFilterPanel from '$lib/components/patterns/TagFilterPanel.svelte';
   let tagFilterRef: TagFilterPanel;
-  let selectedTags: string[] = [];
+  let selectedTags: string[] = $state([]);
   import { cn } from "$lib/utils/utils";
   import type { Pattern } from '$lib/interfaces/pattern-interface';
   import { patterns, patternAPI, selectedPatternName } from '$lib/store/pattern-store';
   import { favorites } from '$lib/store/favorites-store';
   import { Input } from "$lib/components/ui/input";
-  
-  const dispatch = createEventDispatcher();
-  let searchQuery = '';
-  let showOnlyFavorites = false;
-  
+
+  let { onclose, onselect }: {
+    onclose?: () => void;
+    onselect?: (patternName: string) => void;
+  } = $props();
+
+  let searchQuery = $state('');
+  let showOnlyFavorites = $state(false);
+
   onMount(async () => {
     try {
       await patternAPI.loadPatterns();
@@ -21,54 +25,49 @@
       console.error('Error loading patterns:', error);
     }
   });
-  
-function toggleFavorite(patternName: string) {
-  favorites.toggleFavorite(patternName);
-}
 
-function selectPattern(patternName: string) {
-patternAPI.selectPattern(patternName);
-dispatch('select', patternName);
-}
-
-function closeModal() {
-dispatch('close');
-}
-
-function handleTagFilter(event: CustomEvent<string[]>) {
-selectedTags = event.detail;
-}
-
-function toggleFavoritesFilter() {
-showOnlyFavorites = !showOnlyFavorites;
-}
-
-// Apply filtering based on search query, favorites filter, and tag selection
-$: filteredPatterns = $patterns
-.filter(p => {
-  // Apply favorites filter if enabled
-  if (showOnlyFavorites && !$favorites.includes(p.Name)) {
-    return false;
+  function toggleFavorite(patternName: string) {
+    favorites.toggleFavorite(patternName);
   }
-  
-  // Apply tag filter if any tags are selected
-  if (selectedTags.length > 0) {
-    if (!p.tags || !selectedTags.every(tag => p.tags.includes(tag))) {
-      return false;
-    }
+
+  function selectPattern(patternName: string) {
+    patternAPI.selectPattern(patternName);
+    onselect?.(patternName);
   }
-  
-  // Apply search filter if query exists
-  if (searchQuery.trim()) {
-    return (
-      p.Name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-      p.Description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (p.tags && p.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase())))
-    );
+
+  function closeModal() {
+    onclose?.();
   }
-  
-  return true;
-});
+
+  function handleTagFilter(tags: string[]) {
+    selectedTags = tags;
+  }
+
+  function toggleFavoritesFilter() {
+    showOnlyFavorites = !showOnlyFavorites;
+  }
+
+  let filteredPatterns = $derived(
+    $patterns
+      .filter(p => {
+        if (showOnlyFavorites && !$favorites.includes(p.Name)) {
+          return false;
+        }
+        if (selectedTags.length > 0) {
+          if (!p.tags || !selectedTags.every(tag => p.tags.includes(tag))) {
+            return false;
+          }
+        }
+        if (searchQuery.trim()) {
+          return (
+            p.Name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            p.Description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (p.tags && p.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase())))
+          );
+        }
+        return true;
+      })
+  );
 </script>
 
 <div class="bg-primary-800 rounded-lg flex flex-col h-[85vh] w-[600px] shadow-lg relative">
@@ -76,13 +75,13 @@ $: filteredPatterns = $patterns
     <div class="flex justify-between items-center p-4">
       <b class="text-lg text-muted-foreground font-bold">Pattern Descriptions</b>
       <button
-        on:click={closeModal}
+        onclick={closeModal}
         class="text-muted-foreground hover:text-primary-300 transition-colors"
       >
         ✕
       </button>
     </div>
-    
+
     <div class="px-4 pb-4 flex items-center justify-between">
       <div class="flex-1 flex items-center">
         <div class="flex-1 mr-2">
@@ -92,24 +91,22 @@ $: filteredPatterns = $patterns
             class="text-emerald-900"
           />
         </div>
-        
-        <!-- Favorites button similar to PatternTilesModal -->
+
         <button
-          on:click={toggleFavoritesFilter}
+          onclick={toggleFavoritesFilter}
           class={cn(
             "px-3 py-1.5 rounded-md text-sm font-medium transition-all",
-            showOnlyFavorites 
-              ? "bg-yellow-500/20 text-yellow-300 border border-yellow-500/30" 
+            showOnlyFavorites
+              ? "bg-yellow-500/20 text-yellow-300 border border-yellow-500/30"
               : "bg-primary-700/30 text-primary-300 border border-primary-600/20 hover:bg-primary-700/50"
           )}
         >
-          <span class="mr-1">{showOnlyFavorites ? "★" : "☆"}</span>
+          <span class="mr-1">{showOnlyFavorites ? "\u2605" : "\u2606"}</span>
           Favorites
         </button>
       </div>
     </div>
 
-    <!-- Selected tags display -->
     <div class="px-4 pb-2">
       <div class="text-sm text-white/70 bg-primary-700/30 rounded-md p-2 flex justify-between items-center">
         <div class="flex flex-wrap gap-1 items-center">
@@ -118,9 +115,9 @@ $: filteredPatterns = $patterns
             {#each selectedTags as tag}
               <div class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary-600/40 text-primary-200 border border-primary-500/30">
                 {tag}
-                <button 
+                <button
                   class="ml-1 text-xs text-primary-300 hover:text-primary-100"
-                  on:click={() => {
+                  onclick={() => {
                     selectedTags = selectedTags.filter(t => t !== tag);
                   }}
                 >
@@ -132,9 +129,9 @@ $: filteredPatterns = $patterns
             <span class="text-primary-300/50">none</span>
           {/if}
         </div>
-        <button 
+        <button
           class="px-2 py-1 text-xs text-white/70 bg-primary-600/30 rounded hover:bg-primary-600/50 transition-colors"
-          on:click={() => {
+          onclick={() => {
             selectedTags = [];
             if (tagFilterRef && typeof tagFilterRef.reset === 'function') {
               tagFilterRef.reset();
@@ -163,18 +160,18 @@ $: filteredPatterns = $patterns
             <div class="flex justify-between items-start gap-4 mb-2">
               <button
                 class="text-xl font-bold text-primary-300 hover:text-primary-100 cursor-pointer transition-colors text-left w-full"
-                on:click={() => selectPattern(pattern.Name)}
+                onclick={() => selectPattern(pattern.Name)}
               >
                 {pattern.Name}
               </button>
               <button
                 class="text-muted-foreground hover:text-primary-300 transition-colors"
-                on:click|stopPropagation={() => toggleFavorite(pattern.Name)}
+                onclick={(e: MouseEvent) => { e.stopPropagation(); toggleFavorite(pattern.Name); }}
               >
                 {#if $favorites.includes(pattern.Name)}
-                  <span class="text-yellow-400">★</span>
+                  <span class="text-yellow-400">{"\u2605"}</span>
                 {:else}
-                  <span class="text-primary-400 hover:text-yellow-300">☆</span>
+                  <span class="text-primary-400 hover:text-yellow-300">{"\u2606"}</span>
                 {/if}
               </button>
             </div>
@@ -185,16 +182,15 @@ $: filteredPatterns = $patterns
     {/if}
   </div>
 
-  <TagFilterPanel 
-    patterns={$patterns} 
-    on:tagsChanged={handleTagFilter}
+  <TagFilterPanel
+    patterns={$patterns}
+    ontagsChanged={handleTagFilter}
     bind:this={tagFilterRef}
     hideToggleButton={false}
   />
 </div>
 
 <style>
-/* Custom scrollbar styling */
 .custom-scrollbar::-webkit-scrollbar {
   width: 4px;
 }
@@ -212,12 +208,6 @@ $: filteredPatterns = $patterns
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: rgba(156, 163, 175, 0.5);
 }
-
-/* h3.pattern-name {
-  word-break: break-all;
-  hyphens: auto;
-  overflow-wrap: break-word;
-} */
 
 .custom-scrollbar {
   scrollbar-width: thin;

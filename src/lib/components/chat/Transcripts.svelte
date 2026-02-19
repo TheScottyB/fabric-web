@@ -4,11 +4,11 @@
   import Input from '$lib/components/ui/input/Input.svelte';
   import { Toast } from '@skeletonlabs/skeleton';
 
-  let url = '';
-  let transcript = '';
-  let loading = false;
-  let error = '';
-  let title = '';
+  let url = $state('');
+  let transcript = $state('');
+  let loading = $state(false);
+  let error = $state('');
+  let title = $state('');
 
   const toastStore = getToastStore();
 
@@ -82,13 +82,13 @@
   />
   <Button
     variant="secondary"
-    on:click={fetchTranscript}
+    onclick={fetchTranscript}
     disabled={loading || !url}
   >
     {#if loading}
       <div class="spinner-border" />
     {:else}
-      Get 
+      Get
     {/if}
   </Button>
 </div>
@@ -105,7 +105,7 @@
       <Button
         variant="outline"
         size="sm"
-        on:click={copyToClipboard}
+        onclick={copyToClipboard}
       >
         Copy to Clipboard
       </Button>

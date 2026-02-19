@@ -9,5 +9,6 @@ logs/
 *.log
 .svelte-kit/
 .claude/
+.infisical.json
 
 fabric-streamlit/

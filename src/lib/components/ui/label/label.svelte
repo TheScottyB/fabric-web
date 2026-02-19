@@ -1,11 +1,16 @@
 <script lang="ts">
-  let className: string = '';
-  export { className as class };
+  import type { Snippet } from 'svelte';
+
+  let { class: className = '', children, ...rest }: {
+    class?: string;
+    children?: Snippet;
+    [key: string]: any;
+  } = $props();
 </script>
 
 <label
   class="block text-sm font-medium text-gray-700 dark:text-gray-200 {className}"
-  {...$$restProps}
+  {...rest}
 >
-  <slot />
+  {@render children?.()}
 </label>

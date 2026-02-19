@@ -5,8 +5,7 @@
   import Card from '$lib/components/ui/cards/card.svelte';
   import { cn } from '$lib/utils/utils';
 
-  export let post: Post;
-  export let className: string = '';
+  let { post, className = '' }: { post: Post; className?: string } = $props();
 
   function parseDate(dateStr: string): Date {
       // Handle both ISO strings and YYYY-MM-DD formats
@@ -15,9 +14,9 @@
 </script>
 
 <article class="card card-hover group relative rounded-lg border p-6 hover:bg-primary-500/50 {className}">
-  <a 
+  <a
     href="/posts/{post.slug}"
-    class="absolute inset-0" 
+    class="absolute inset-0"
     data-sveltekit-preload-data="off"
   >
     <span class="sr-only">View {post.metadata?.title}</span>

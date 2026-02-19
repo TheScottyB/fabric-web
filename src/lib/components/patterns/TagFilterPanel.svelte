@@ -1,21 +1,20 @@
 <script lang="ts">
     import type { Pattern } from '$lib/interfaces/pattern-interface';
-    import { createEventDispatcher } from 'svelte';
-    
-    const dispatch = createEventDispatcher<{
-        tagsChanged: string[];
-    }>();
 
-    export let patterns: Pattern[];
-    export let hideToggleButton = false; // New prop to hide the toggle button when used in modal
-    let selectedTags: string[] = [];
-    let isExpanded = false;
+    let { patterns, hideToggleButton = false, ontagsChanged }: {
+        patterns: Pattern[];
+        hideToggleButton?: boolean;
+        ontagsChanged?: (tags: string[]) => void;
+    } = $props();
+
+    let selectedTags: string[] = $state([]);
+    let isExpanded = $state(false);
 
     function toggleTag(tag: string) {
         selectedTags = selectedTags.includes(tag)
             ? selectedTags.filter(t => t !== tag)
             : [...selectedTags, tag];
-        dispatch('tagsChanged', selectedTags);
+        ontagsChanged?.(selectedTags);
     }
 
     function togglePanel() {
@@ -25,35 +24,35 @@
     export function reset() {
         selectedTags = [];
         isExpanded = false;
-        dispatch('tagsChanged', selectedTags);
+        ontagsChanged?.(selectedTags);
     }
 </script>
 
 <div class="tag-panel {isExpanded ? 'expanded' : ''} {hideToggleButton ? 'embedded' : ''}" style="z-index: 50">
     {#if !hideToggleButton}
     <div class="panel-header">
-        <button class="close-btn" on:click={togglePanel}>
-            {isExpanded ? 'Close Filter Tags ◀' : 'Open Filter Tags ▶'}
+        <button class="close-btn" onclick={togglePanel}>
+            {isExpanded ? 'Close Filter Tags \u25C0' : 'Open Filter Tags \u25B6'}
         </button>
     </div>
     {/if}
-    
+
     <div class="panel-content {hideToggleButton ? 'always-visible' : ''}">
         <div class="reset-container">
-            <button 
+            <button
                 class="reset-btn"
-                on:click={() => {
+                onclick={() => {
                     selectedTags = [];
-                    dispatch('tagsChanged', selectedTags);
+                    ontagsChanged?.(selectedTags);
                 }}
             >
                 Reset All Tags
             </button>
         </div>
         {#each Array.from(new Set(patterns.flatMap(p => p.tags || []))).sort() as tag}
-            <button 
+            <button
                 class="tag-brick {selectedTags.includes(tag) ? 'selected' : ''}"
-                on:click={() => toggleTag(tag)}
+                onclick={() => toggleTag(tag)}
             >
                 {tag}
             </button>
@@ -61,17 +60,15 @@
     </div>
 </div>
 <style>
-   /* Default positioning for standalone mode */
    .tag-panel {
-    position: fixed;  /* Change to fixed positioning */
-    left: calc(50% + 300px); /* Position starts after modal's right edge */
+    position: fixed;
+    left: calc(50% + 300px);
     top: 50%;
     transform: translateY(-50%);
     width: 300px;
     transition: left 0.3s ease;
 }
 
-/* When embedded in another component, use relative positioning */
 .tag-panel.embedded {
     position: relative;
     left: auto;
@@ -82,7 +79,7 @@
 }
 
 .tag-panel.expanded {
-    left: calc(50% + 360px); /* Final position just to the right of modal */
+    left: calc(50% + 360px);
 }
 
 .panel-content {
@@ -94,12 +91,10 @@
     overflow-y: auto;
 }
 
-/* Adjust max-height when embedded */
 .embedded .panel-content {
     max-height: 100%;
 }
 
-/* When used in modal, always show content */
 .panel-content.always-visible {
     display: flex;
 }
@@ -157,13 +152,11 @@
     text-align: left;
 }
 
-/* Position for 'Open Filter Tags' */
 .tag-panel:not(.expanded) .close-btn {
-    top: -290px;  /* Moves up to search bar level */
+    top: -290px;
     margin-left: 10px;
 }
 
-/* Position for 'Close Filter Tags' */
 .expanded .close-btn {
     position: relative;
     top: 0;

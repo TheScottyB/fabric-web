@@ -5,15 +5,15 @@
   import { noteStore } from '$lib/store/note-store';
   import { afterNavigate, beforeNavigate } from '$app/navigation';
   import { clickOutside } from '$lib/actions/clickOutside';
-  
+
   const drawerStore = getDrawerStore();
   const toastStore = getToastStore();
-  
-  let textareaEl: HTMLTextAreaElement;
-  let saving = false;
 
-  let content = '';
-  
+  let textareaEl: HTMLTextAreaElement;
+  let saving = $state(false);
+
+  let content = $state('');
+
   // Auto-resize textarea
   function adjustTextareaHeight() {
     if (textareaEl) {
@@ -21,7 +21,7 @@
       textareaEl.style.height = textareaEl.scrollHeight + 'px';
     }
   }
-  
+
   async function saveContent() {
     if (!$noteStore.content.trim()) {
       toastStore.trigger({
@@ -34,7 +34,7 @@
     try {
       saving = true;
       await noteStore.save();
-      
+
       toastStore.trigger({
         message: `Note saved successfully!`,
         background: 'variant-filled-success'
@@ -49,25 +49,29 @@
       saving = false;
     }
   }
-  
+
   // Prompt user if trying to close with unsaved changes
-  $: if ($drawerStore.open === false && $noteStore.isDirty) {
-    if (confirm('You have unsaved changes. Are you sure you want to close?')) {
-      noteStore.reset();
-    } else {
-      drawerStore.open({});
+  $effect(() => {
+    if ($drawerStore.open === false && $noteStore.isDirty) {
+      if (confirm('You have unsaved changes. Are you sure you want to close?')) {
+        noteStore.reset();
+      } else {
+        drawerStore.open({});
+      }
     }
-  }
-  
+  });
+
   // Load saved content when drawer opens
-  $: if ($drawerStore.open) {
-    const savedContent = localStorage.getItem('savedText');
-    if (savedContent) {
-      noteStore.updateContent(savedContent);
-      noteStore.save();
+  $effect(() => {
+    if ($drawerStore.open) {
+      const savedContent = localStorage.getItem('savedText');
+      if (savedContent) {
+        noteStore.updateContent(savedContent);
+        noteStore.save();
+      }
     }
-  }
-  
+  });
+
   // Keyboard shortcuts
   function handleKeydown(event: KeyboardEvent) {
     if ((event.ctrlKey || event.metaKey) && event.key === 's') {
@@ -75,7 +79,7 @@
       saveContent();
     }
   }
-  
+
   onMount(() => {
     adjustTextareaHeight();
   });
@@ -83,7 +87,7 @@
 
 <Drawer width="w-[40%]" class="flex flex-col h-[calc(100vh-theme(spacing.32))] p-4 mt-16">
   {#if $drawerStore.open}
-    <div 
+    <div
       class="flex flex-col h-full"
       use:clickOutside={() => {
         if ($noteStore.isDirty) {
@@ -115,10 +119,10 @@
         <textarea
         bind:this={textareaEl}
         value={$noteStore.content}
-        on:input={e => noteStore.updateContent(e.currentTarget.value)}
-        on:keydown={handleKeydown}
+        oninput={e => noteStore.updateContent(e.currentTarget.value)}
+        onkeydown={handleKeydown}
         class="w-full h-full min-h-[300px] resize-none p-2 rounded-lg bg-primary-800/30 border-none text-sm"
-        placeholder="Enter your text here..." 
+        placeholder="Enter your text here..."
         />
       </div>
 
@@ -131,13 +135,13 @@
         <div class="flex gap-2">
           <button
             class="btn btn-sm variant-filled-surface"
-            on:click={noteStore.reset}
+            onclick={noteStore.reset}
           >
             Reset
           </button>
           <button
             class="btn btn-sm variant-filled-primary"
-            on:click={saveContent}
+            onclick={saveContent}
           >
             {#if saving}
               Saving...

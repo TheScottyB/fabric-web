@@ -1,24 +1,17 @@
 <script lang="ts">
   import { X } from 'lucide-svelte';
-  import { createEventDispatcher } from 'svelte';
 
-  const dispatch = createEventDispatcher<{
-    close: void;
-  }>();
+  let { onclose }: {
+    onclose?: () => void;
+  } = $props();
 
   let modalContent: HTMLDivElement;
-
-  function handleMouseLeave() {
-    dispatch('close');
-  }
 </script>
-
-
 
 <div class="bg-primary-800 rounded-lg flex flex-col h-[85vh] w-[600px] shadow-lg">
     <div class="flex justify-between items-center p-6 border-b-2 border-primary-700">
       <h1 class="text-3xl font-bold text-primary-300">Help</h1>
-        <button class="text-muted-foreground hover:text-primary-300 transition-colors" on:click={() => dispatch('close')}>✕</button>
+        <button class="text-muted-foreground hover:text-primary-300 transition-colors" onclick={() => onclose?.()}>✕</button>
     </div>
     <div class="p-6 flex-1 overflow-y-auto" bind:this={modalContent}>
         <div class="space-y-4">
@@ -165,4 +158,3 @@
         </div>
     </div>
 </div>
-

@@ -34,8 +34,9 @@
     overflow: hidden;
   }
 
-  /* Ensure any nested content doesn't cause scrolling */
-  :global(.viewport-container *) {
+  /* Prevent direct children from causing layout overflow,
+     but allow nested elements (textareas, scrollable areas) to manage their own overflow */
+  :global(.viewport-container > *) {
     overflow: hidden;
   }
 </style>

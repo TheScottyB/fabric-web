@@ -1,39 +1,37 @@
 <script lang="ts">
   import { fade, scale } from 'svelte/transition';
-  import { createEventDispatcher } from 'svelte';
+  import type { Snippet } from 'svelte';
 
-  const dispatch = createEventDispatcher<{
-    close: void;
-  }>();
-
-  export let show = false;
+  let { show = false, onclose, children }: {
+    show?: boolean;
+    onclose?: () => void;
+    children?: Snippet;
+  } = $props();
 </script>
 
-<!-- svelte-ignore a11y-click-events-have-key-events a11y-no-noninteractive-element-interactions a11y-no-static-element-interactions -->
+<!-- svelte-ignore a11y_click_events_have_key_events a11y_no_noninteractive_element_interactions a11y_no_static_element_interactions -->
 {#if show}
 <div
-class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 mt-2"
-on:click={() => dispatch('close')}
-on:keydown={(e) => e.key === 'Escape' && dispatch('close')}
-role="dialog"
-aria-modal="true"
-aria-label="Modal dialog"
-tabindex="-1"
-transition:fade={{ duration: 200 }}
+  class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 mt-2"
+  onclick={() => onclose?.()}
+  onkeydown={(e) => e.key === 'Escape' && onclose?.()}
+  role="dialog"
+  aria-modal="true"
+  aria-label="Modal dialog"
+  tabindex="-1"
+  transition:fade={{ duration: 200 }}
 >
-<div
-class="relative"
-on:click|stopPropagation
-role="document"
-aria-label="Modal content"
-transition:scale={{ duration: 200 }}
->
-<slot />
-</div>
+  <div
+    class="relative"
+    onclick={(e) => e.stopPropagation()}
+    role="document"
+    aria-label="Modal content"
+    transition:scale={{ duration: 200 }}
+  >
+    {@render children?.()}
+  </div>
 </div>
 {/if}
-
-
 
 <style>
   .fixed {
