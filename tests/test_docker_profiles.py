@@ -83,7 +83,8 @@ class DockerProfileTests:
         all_passed = True
         
         # Check for ollama profile - may be in profiles section or service definition
-        if 'ollama' in stdout:
+        # Use case-insensitive matching since env vars are uppercase (OLLAMA_API_URL)
+        if 'ollama' in stdout.lower():
             self.print_test("Ollama profile defined", True, "Found in compose config")
         else:
             self.print_test("Ollama profile defined", False, "Profile not found")

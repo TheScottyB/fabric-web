@@ -8,7 +8,9 @@ const FABRIC_BASE_URL = process.env.FABRIC_BASE_URL || 'http://localhost:8080';
 export default defineConfig({
   plugins: [sveltekit(), purgeCss()],
   test: {
-    exclude: ['**/node_modules/**', '**/e2e/**', '**/.svelte-kit/**']
+    exclude: ['**/node_modules/**', '**/e2e/**', '**/.svelte-kit/**'],
+    reporters: ['verbose'],
+    passWithNoTests: true
   },
   optimizeDeps: {
     include: ['pdfjs-dist'],
