@@ -385,19 +385,34 @@ class FabricSmokeTests:
         """Test YouTube transcript + Fabric pattern integration"""
         self.print_header("YouTube Integration Test")
         
-        # Check if yt command is available
+        # Check for YouTube capabilities: either 'yt' command or 'fabric -y'
+        # Both are from Fabric and use yt-dlp under the hood
         try:
             import subprocess
+            
+            # Check for standalone 'yt' command (installed with fabric)
             yt_check = subprocess.run(['which', 'yt'], capture_output=True, timeout=2)
-            if yt_check.returncode != 0:
-                self.print_test("YouTube CLI (yt) available", False, 
-                              "'yt' command not found - install from fabric")
+            has_yt = yt_check.returncode == 0
+            
+            # Check for 'fabric' command (which has -y flag)
+            fabric_check = subprocess.run(['which', 'fabric'], capture_output=True, timeout=2)
+            has_fabric = fabric_check.returncode == 0
+            
+            if has_yt:
+                self.print_test("YouTube CLI (yt)", True, 
+                              "Use 'yt --transcript URL | fabric -sp pattern'")
+            elif has_fabric:
+                self.print_test("YouTube via fabric -y", True, 
+                              "Use 'fabric -y URL --pattern pattern'")
+            else:
+                self.print_test("YouTube capability", False, 
+                              "Neither 'yt' nor 'fabric' found")
                 return True  # Not critical, skip gracefully
         except Exception as e:
             self.print_test("YouTube CLI check", False, str(e))
             return True  # Not critical
         
-        # Test the integration flow: yt transcript -> fabric pattern
+        # Test the integration flow: fabric -y URL | fabric -sp pattern
         # Using a short, well-known video for testing
         test_video = "https://www.youtube.com/watch?v=dQw4w9WgXcQ"  # Short video
         pattern = "summarize"
@@ -405,8 +420,8 @@ class FabricSmokeTests:
         try:
             start = time.time()
             
-            # Simulate: yt --transcript 'URL' | fabric -sp pattern
-            # Step 1: Get transcript (mock for test - would normally use yt command)
+            # Simulate: fabric -y 'URL' | fabric -sp pattern
+            # Step 1: Get transcript (mock for test - would normally use fabric -y)
             test_transcript = """This is a test transcript. 
             It contains sample text that would normally come from YouTube. 
             The content discusses technology and innovation in software development.
@@ -461,7 +476,7 @@ class FabricSmokeTests:
             start = time.time()
             
             # Simulate: fabric -y 'URL' --comments | fabric -rp summary_action
-            # Step 1: Get comments (mock for test - would normally use fabric -y command)
+            # Step 1: Get comments (mock for test - would normally use fabric -y --comments)
             test_comments = """Comment 1: This video is amazing! Very informative.
             Comment 2: Great explanation of the concepts.
             Comment 3: Thanks for sharing this knowledge.
