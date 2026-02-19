@@ -75,19 +75,20 @@ class FabricSmokeTests:
         
         try:
             start = time.time()
-            response = requests.get(f"{self.api_base}/health", timeout=5)
+            # Fabric API uses /models/names as health indicator
+            response = requests.get(f"{self.api_base}/models/names", timeout=5)
             duration = time.time() - start
             
             if response.status_code == 200:
-                self.print_test("API /health endpoint", True, 
+                self.print_test("API health (models/names)", True, 
                               f"Status: {response.status_code}", duration)
                 return True
             else:
-                self.print_test("API /health endpoint", False, 
+                self.print_test("API health (models/names)", False, 
                               f"Status: {response.status_code}", duration)
                 return False
         except Exception as e:
-            self.print_test("API /health endpoint", False, str(e))
+            self.print_test("API health (models/names)", False, str(e))
             return False
     
     def test_api_list_patterns(self) -> bool:
@@ -96,7 +97,7 @@ class FabricSmokeTests:
         
         try:
             start = time.time()
-            response = requests.get(f"{self.api_base}/patterns", timeout=10)
+            response = requests.get(f"{self.api_base}/patterns/names", timeout=10)
             duration = time.time() - start
             
             if response.status_code == 200:
@@ -127,7 +128,7 @@ class FabricSmokeTests:
         
         try:
             start = time.time()
-            response = requests.get(f"{self.api_base}/models", timeout=10)
+            response = requests.get(f"{self.api_base}/models/names", timeout=10)
             duration = time.time() - start
             
             if response.status_code == 200:

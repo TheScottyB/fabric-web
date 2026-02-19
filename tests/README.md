@@ -46,12 +46,12 @@ cd ~/workspace/fabric-web/tests
   - fabric-web-streamlit
 
 #### ✅ Docker Volumes
-- fabric-web_fabric-config
-- fabric-web_fabric-patterns
-- fabric-web_fabric-logs
+- fabric-docker_fabric-config
+- fabric-docker_fabric-patterns
+- fabric-docker_fabric-logs
 
 #### ✅ Docker Network
-- fabric-web_fabric-net
+- fabric-docker_fabric-net
 
 ### Phase 3: Service Health Tests (Requires Services Running)
 

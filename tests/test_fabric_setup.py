@@ -266,7 +266,7 @@ class FabricTestSuite:
         all_passed = True
         
         health_endpoints = {
-            'fabric-api': (base_urls.get('api', 'http://localhost:8080'), '/health'),
+            'fabric-api': (base_urls.get('api', 'http://localhost:8080'), '/models/names'),
             'fabric-web-svelte': (base_urls.get('svelte', 'http://localhost:5173'), '/'),
             'fabric-web-streamlit': (base_urls.get('streamlit', 'http://localhost:8502'), '/_stcore/health'),
         }
@@ -309,17 +309,16 @@ class FabricTestSuite:
             
             if result.returncode == 0:
                 volumes = result.stdout.strip().split('\n')
-                expected_volumes = [
-                    'fabric-web_fabric-config',
-                    'fabric-web_fabric-patterns',
-                    'fabric-web_fabric-logs',
-                ]
+                # Check for volumes with either fabric-web or fabric-docker prefix
+                volume_names = ['fabric-config', 'fabric-patterns', 'fabric-logs']
                 
-                for vol in expected_volumes:
-                    if vol in volumes:
-                        self.print_test(f"Volume: {vol}", True, "Exists")
+                for vol_name in volume_names:
+                    # Check both possible prefixes based on directory name
+                    found = any(v.endswith(vol_name) and 'fabric' in v for v in volumes)
+                    if found:
+                        self.print_test(f"Volume: {vol_name}", True, "Exists")
                     else:
-                        self.print_test(f"Volume: {vol}", False, 
+                        self.print_test(f"Volume: {vol_name}", False, 
                                       "Not found (will be created on first start)")
                 
                 return True
@@ -344,13 +343,14 @@ class FabricTestSuite:
             
             if result.returncode == 0:
                 networks = result.stdout.strip().split('\n')
-                expected_network = 'fabric-web_fabric-net'
+                # Check for network with either fabric-web or fabric-docker prefix
+                found_network = next((n for n in networks if 'fabric' in n and 'fabric-net' in n), None)
                 
-                if expected_network in networks:
-                    self.print_test(f"Network: {expected_network}", True, "Exists")
+                if found_network:
+                    self.print_test(f"Network: {found_network}", True, "Exists")
                     return True
                 else:
-                    self.print_test(f"Network: {expected_network}", False, 
+                    self.print_test("Network: fabric-net", False, 
                                   "Not found (will be created on first start)")
                     return True  # Not critical for initial tests
             else:
