@@ -80,6 +80,32 @@ if curl -s http://localhost:8080/health > /dev/null 2>&1; then
     else
         echo -e "\n${RED}✗ Some security tests failed${NC}"
     fi
+    
+    echo -e "\n${BLUE}╔════════════════════════════════════════════════════════════════╗${NC}"
+    echo -e "${BLUE}║  Phase 4: Docker Profile Tests                                 ║${NC}"
+    echo -e "${BLUE}╚════════════════════════════════════════════════════════════════╝${NC}"
+    
+    python3 test_docker_profiles.py
+    DOCKER_PROFILE_EXIT=$?
+    
+    if [ $DOCKER_PROFILE_EXIT -eq 0 ]; then
+        echo -e "\n${GREEN}✓ Docker profile tests passed${NC}"
+    else
+        echo -e "\n${YELLOW}⚠ Some Docker profile tests failed${NC}"
+    fi
+    
+    echo -e "\n${BLUE}╔════════════════════════════════════════════════════════════════╗${NC}"
+    echo -e "${BLUE}║  Phase 5: Pattern Validation Tests                             ║${NC}"
+    echo -e "${BLUE}╚════════════════════════════════════════════════════════════════╝${NC}"
+    
+    python3 test_patterns.py
+    PATTERNS_EXIT=$?
+    
+    if [ $PATTERNS_EXIT -eq 0 ]; then
+        echo -e "\n${GREEN}✓ Pattern validation tests passed${NC}"
+    else
+        echo -e "\n${YELLOW}⚠ Some pattern tests failed${NC}"
+    fi
 else
     echo -e "${YELLOW}⚠ Services not running - skipping smoke and security tests${NC}"
     echo -e "${CYAN}To run all tests, start services first:${NC}"

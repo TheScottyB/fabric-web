@@ -58,7 +58,7 @@ cd ~/workspace/fabric-web/tests
 #### ✅ Service Health Endpoints
 - **fabric-api**: http://localhost:8080/health
 - **fabric-web-svelte**: http://localhost:5173/
-- **fabric-web-streamlit**: http://localhost:8501/_stcore/health
+- **fabric-web-streamlit**: http://localhost:8502/_stcore/health
 
 ## Test Output Example
 
@@ -116,7 +116,7 @@ suite = FabricTestSuite()
 base_urls = {
     'api': 'http://localhost:8080',
     'svelte': 'http://localhost:5173',
-    'streamlit': 'http://localhost:8501',
+    'streamlit': 'http://localhost:8502',
 }
 suite.test_service_health_endpoints(base_urls)
 ```

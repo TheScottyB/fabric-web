@@ -88,7 +88,7 @@ services:
     image: fabric-web-streamlit:latest
     container_name: fabric-web-streamlit
     ports:
-      - "8501:8501"
+      - "8502:8501"  # Host 8502 -> Container 8501 (avoids conflict with AlphaTrade)
     volumes:
       - fabric-config:/home/fabric/.config/fabric
       - fabric-patterns:/home/fabric/.config/fabric/patterns

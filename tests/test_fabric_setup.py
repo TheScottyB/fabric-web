@@ -188,7 +188,7 @@ class FabricTestSuite:
         dockerfiles = [
             ('Dockerfile.api', '../Dockerfile.api'),
             ('Dockerfile.svelte', '../Dockerfile.svelte'),
-            ('Dockerfile (streamlit)', '../../fabric-streamlit/Dockerfile'),
+            ('Dockerfile (streamlit)', '../fabric-streamlit/Dockerfile'),
         ]
         
         all_passed = True
@@ -268,7 +268,7 @@ class FabricTestSuite:
         health_endpoints = {
             'fabric-api': (base_urls.get('api', 'http://localhost:8080'), '/health'),
             'fabric-web-svelte': (base_urls.get('svelte', 'http://localhost:5173'), '/'),
-            'fabric-web-streamlit': (base_urls.get('streamlit', 'http://localhost:8501'), '/_stcore/health'),
+            'fabric-web-streamlit': (base_urls.get('streamlit', 'http://localhost:8502'), '/_stcore/health'),
         }
         
         for service, (base_url, endpoint) in health_endpoints.items():
@@ -411,7 +411,7 @@ def run_all_tests():
         base_urls = {
             'api': 'http://localhost:8080',
             'svelte': 'http://localhost:5173',
-            'streamlit': 'http://localhost:8501',
+            'streamlit': 'http://localhost:8502',
         }
         suite.test_service_health_endpoints(base_urls)
     else:
